@@ -1,0 +1,24 @@
+<odoo>
+  <data>
+
+    <!-- Acción de servidor (ya definida en otro archivo o aquí si preferís unificar) -->
+    <record id="action_update_costs_by_currency_rate_today" model="ir.actions.server">
+      <field name="name">Actualizar costos por tipo de cambio actualizado hoy</field>
+      <field name="model_id" ref="purchase.model_product_supplierinfo"/>
+      <field name="state">code</field>
+      <field name="code">env['product.supplierinfo'].ejecutar_actualizacion_costos_tipo_cambio()</field>
+      <field name="binding_model_id" ref="purchase.model_product_supplierinfo"/>
+      <field name="binding_type">action</field>
+      <field name="groups_id" eval="[(4, ref('base.group_system'))]"/>
+    </record>
+
+    <!-- Menú debajo de Facturación > Configuración > Monedas -->
+<menuitem id="menu_update_costs_by_currency_rate_today"
+          name="Actualizar costos por tipo de cambio"
+          parent="currency_rate_update.menu_res_currency_rate_provider"
+          action="action_update_costs_by_currency_rate_today"
+          sequence="30"
+          groups="base.group_system"/>
+
+  </data>
+</odoo>
