@@ -1,1 +1,1 @@
-from . import product_supplierinfo
+from . import product_supplierinfo, res_currency_rate

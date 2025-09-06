@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 from datetime import date
 
@@ -95,21 +95,36 @@ class ProductSupplierinfo(models.Model):
                     d_clean = d.strip().replace(".", "", 1)
                     if not d_clean.replace(".", "", 1).isdigit():
                         raise ValidationError(
-                            "La cadena de descuentos contiene un valor inválido: '%s'." % d
+                            _("La cadena de descuentos contiene un valor inválido: '%s'.") % d
                         )
-                    
+
     @api.model
     def ejecutar_actualizacion_costos_tipo_cambio(self):
-        """Actualiza costos si hubo cambios en tipo de cambio hoy"""
         today = fields.Date.today()
-        actualizados = 0
+        actualizados_por_moneda = {}  # moneda → cantidad
+
         suppliers = self.search([
             ('currency_id', '!=', False),
             ('currency_id.name', '!=', self.env.company.currency_id.name)
         ])
+
         for rec in suppliers:
-            updated_today = rec.currency_id.rate_ids.filtered(lambda r: r.name == today)
-            if updated_today:
+            latest_rate = rec.currency_id.rate_ids.filtered(
+                lambda r: r.name <= today
+            ).sorted(key=lambda r: r.name, reverse=True)
+
+            if latest_rate:
                 rec._update_standard_price()
-                actualizados += 1
-        return f"Se actualizaron {actualizados} proveedor(es) con tipo de cambio de hoy."
+                moneda = rec.currency_id.name
+                actualizados_por_moneda[moneda] = actualizados_por_moneda.get(moneda, 0) + 1
+
+        if not actualizados_por_moneda:
+            return _("No se actualizó ningún producto (no hay tasas válidas).")
+
+        detalle = "\n".join([
+            _("💱 %(moneda)s: %(cantidad)d producto(s) actualizado(s)") % {
+                'moneda': moneda, 'cantidad': cantidad
+            } for moneda, cantidad in actualizados_por_moneda.items()
+        ])
+
+        return _("✅ Costos actualizados por tipo de cambio:\n\n") + detalle

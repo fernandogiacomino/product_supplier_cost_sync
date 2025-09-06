@@ -1,4 +1,4 @@
-# product_supplier_cost_sync
+# product_supplier_cost_sync 
 
 Módulo para Odoo que permite definir descuentos encadenados usando una cadena tipo `5+3+10`, aplicarlos sobre el precio del proveedor, y actualizar automáticamente el costo del producto (`standard_price`) en la moneda de la empresa.
 
